@@ -26,24 +26,24 @@ def handle_message(message):
   msg = msg.message_id
   bot.send_chat_action(message.chat.id, 'typing')
 
+  file_path, content_file_path = None, None
+
   try:
     file_path = y2.download_audio_from_youtube(ytb_link)
     data = y2.get_data_from_youtube(ytb_link)
     audio = open(rf'{file_path}', 'rb')
     bot.send_audio(message.chat.id, audio)
+    content_file_path = f'text/{data["content"]}.txt'
+    content = open(rf'{content_file_path}', 'rb')
     bot.send_message(message.chat.id,
                      f'''
 🎥 {data["title"]};
 😎 <b>Channel:</b>  <a href="{data["channel_url"]}">{data["author"]}</a>;
 📆 <b>Publish Date:</b> {datetime.strftime(data["publish_date"], "%m/%d/%Y")};
+📄 <b>Summary Content:</b> 
 ''',
                      parse_mode='html')
-    bot.send_message(message.chat.id,
-                     f''' 
-<code>🃏 Summary: </code>
-{data["content"]}
-''',
-                     parse_mode='html')
+    bot.send_document(message.chat.id, content)
     audio.close()
   except Exception as e:
     print("An error occurred:", str(e))
@@ -51,7 +51,10 @@ def handle_message(message):
       message.chat.id,
       '⚠️ Sorry, something went wrong! You have an error in request!')
   finally:
-    y2.delete_audio_file(file_path)
+    if file_path:
+      y2.delete_file(file_path)
+    if content_file_path:
+      y2.delete_file(content_file_path, "Text")
     if msg:
       bot.delete_message(message.chat.id, msg)
 

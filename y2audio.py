@@ -1,13 +1,16 @@
 import os
-import requests
+import uuid
+from youtube_transcript_api import YouTubeTranscriptApi
 from pytube import YouTube
+
 # from transformers import pipeline, set_seed
 
 ## Setup Text Generation Pipeline
 # generator = pipeline('text-generation', model='gpt2')
 
 ## Setup Random State for reducing randomness & enhance reproducibility
-# set_seed(42) 
+# set_seed(42)
+
 
 def download_audio_from_youtube(video_link):
   destination = 'audio/'
@@ -30,16 +33,26 @@ def download_audio_from_youtube(video_link):
     return None
 
 
-def delete_audio_file(file_path):
+def delete_file(file_path, type="audio"):
   try:
     if os.path.exists(file_path):
       os.remove(file_path)
-      print("Audio file deleted successfully.")
+      print(f"{type} file deleted successfully.")
     else:
-      print("Audio file does not exist.")
+      print(f"{type} file does not exist.")
 
   except Exception as e:
-    print("Error occurred while deleting the audio file:", str(e))
+    print(f"Error occurred while deleting the {type} file:", str(e))
+
+
+def get_yt_video_ID(link):
+  if 'youtube.com' in link:
+    return link.split('v=')[1]
+  elif 'youtu.be' in link:
+    link = link.split('/')[-1]
+    return link.split('?')[0]
+  else:
+    return None
 
 
 # Add function that gets youtube_link and returns dictionary: 'title', 'description'
@@ -52,18 +65,27 @@ def get_data_from_youtube(video_url):
   publish_date = yt.publish_date
   # gen_data = generator(title, max_length=50, num_return_sequences=1)
   # content = gen_data[0]['generated_text']
+
+  unique_filename = f'Transcript_{str(uuid.uuid4())[:6]}'
+
   try:
-    response = requests.get('https://api.chucknorris.io/jokes/random')
-    content = response.json()["value"]
+    data = YouTubeTranscriptApi.get_transcript('_G5f7og_Dpo')
+    content = ""
+    for d in data:
+      content += d['text'] + "; "
   except Exception as e:
-    print("Error: ", e)
-    content = "Some Text!"
+    print("Error in the process of getting YT Video Transcript: ", e)
+    content = "Something Went Wrong in the process of getting YT Video Transcript!"
+  finally:
+    with open(f'text/{unique_filename}.txt', 'w') as f:
+      f.write(content)
+
   return {
     'title': title,
     'author': author,
     'channel_url': channel_url,
     'publish_date': publish_date,
-    'content': content
+    'content': unique_filename
   }
 
 

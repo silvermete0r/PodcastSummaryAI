@@ -18,6 +18,7 @@ SpeechRecognition = "^3.10.0"
 moviepy = "^1.0.3"
 pydub = "^0.25.1"
 sentence-transformers = "^2.2.2"
+youtube-transcript-api = "^0.6.1"
 
 [tool.poetry.dev-dependencies]
 debugpy = "^1.6.2"
