@@ -69,7 +69,7 @@ def get_data_from_youtube(video_url):
   unique_filename = f'Transcript_{str(uuid.uuid4())[:6]}'
 
   try:
-    data = YouTubeTranscriptApi.get_transcript('_G5f7og_Dpo')
+    data = YouTubeTranscriptApi.get_transcript(get_yt_video_ID(str(video_url)))
     content = ""
     for d in data:
       content += d['text'] + "; "
