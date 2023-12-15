@@ -42,6 +42,7 @@ def handle_message(message):
 😎 <b>Channel:</b>  <a href="{data["channel_url"]}">{data["author"]}</a>;
 📆 <b>Publish Date:</b> {datetime.strftime(data["publish_date"], "%m/%d/%Y")};
 📄 <b>Summary Content:</b> 
+{data["summary"]}
 ''',
                      parse_mode='html')
     bot.send_document(message.chat.id, content)

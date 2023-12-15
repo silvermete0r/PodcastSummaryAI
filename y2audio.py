@@ -2,6 +2,7 @@ import os
 import uuid
 from youtube_transcript_api import YouTubeTranscriptApi
 from pytube import YouTube
+import openai
 
 # from transformers import pipeline, set_seed
 
@@ -10,6 +11,39 @@ from pytube import YouTube
 
 ## Setup Random State for reducing randomness & enhance reproducibility
 # set_seed(42)
+
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
+model_name = "gpt-3.5-turbo"
+
+rules = """
+    You are a chatbot that summarizes texts. 
+    You are working with transcripts from a podcast.
+    You need to summarize text to no more than 200-300 words.
+    Your summaries should be coherent and grammatically correct.
+    You should not change the meaning of the text.
+    You should not add any new information.
+    You should write by points.
+    Summarize the following text:
+"""
+
+
+def get_summary(prompt):
+  try:
+    response = openai.ChatCompletion.create(model=model_name,
+                                            messages=[{
+                                              'role': 'system',
+                                              'content': rules
+                                            }, {
+                                              'role': 'user',
+                                              'content': prompt
+                                            }])
+
+    chatbot_response = response.choices[0].message['content'].strip()
+    return chatbot_response
+  except Exception as e:
+    print("Error occured while generating summary: ", e)
+    return "Sorry, but something went wrong. Please try again later."
 
 
 def download_audio_from_youtube(video_link):
@@ -33,7 +67,7 @@ def download_audio_from_youtube(video_link):
     return None
 
 
-def delete_file(file_path, type="audio"):
+def delete_file(file_path, type="Audio"):
   try:
     if os.path.exists(file_path):
       os.remove(file_path)
@@ -80,12 +114,15 @@ def get_data_from_youtube(video_url):
     with open(f'text/{unique_filename}.txt', 'w') as f:
       f.write(content)
 
+  summary_text = get_summary(content)
+
   return {
     'title': title,
     'author': author,
     'channel_url': channel_url,
     'publish_date': publish_date,
-    'content': unique_filename
+    'content': unique_filename,
+    'summary': summary_text
   }
 
 
